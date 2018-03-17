@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='dynprops',
-    version='0.1.0',
+    version='0.1.1',
     url="http://github.com/hsolbrig/dynprops",
     license='Apache 2.0',
     author='Harold Solbrig',

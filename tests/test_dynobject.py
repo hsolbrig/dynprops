@@ -116,6 +116,21 @@ class DynObjectTestCase(unittest.TestCase):
 
         self.assertEqual('"glob1"-"loc1"', row(I1()))
         self.assertEqual('"glob1"-"loc2"', row(I2()))
+        DynProps._separator = '\t'
+
+    def test_simple_props(self):
+        class Base(DynProps):
+            a_prop: Global[str] = 'on the'
+            a_general_item = "penguin"
+
+            def __init__(self, v: str) -> None:
+                self.v = v
+
+            def try_me(self) -> str:
+                return f"There is a {self.a_general_item} {self.a_prop} {self.v}"
+
+        x = Base("telly")
+        self.assertEqual("There is a penguin on the telly", x.try_me())
 
 
 if __name__ == '__main__':
