@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, cast
 import time
 
-from dynprops import DynProps, Global, Parent, Local
+from dynprops import DynProps, Global, Parent, Local, row, as_dict
 
 
 class I2B2Core(DynProps):
@@ -359,6 +359,39 @@ class DynPropsTestCase(unittest.TestCase):
         self.assertEqual('"SS3"\t', C1()._delimited())
         C1._clear()
         self.assertEqual("\t", C1()._delimited())
+
+    def test_reify(self):
+        class SpecialProp1:
+            def __init__(self, *parts) -> None:
+                self.parts = parts
+
+            def reify(self):
+                return '-'.join(str(s) for s in self.parts) if self.parts else None
+
+        class SpecialProp2:
+            def __init__(self, *parts) -> None:
+                self.parts = parts
+
+            def reify(self):
+                return sum(int(p) for p in self.parts) if self.parts else None
+
+        class R1(DynProps):
+            sp1: Local[SpecialProp1]
+            sp2: Local[SpecialProp1]
+            sp3: Local[SpecialProp2]
+            sp4: Local[SpecialProp2]
+
+        r = R1()
+        r.sp1 = SpecialProp1('a', 17, None)
+        r.sp2 = SpecialProp1()
+        r.sp3 = SpecialProp2(17, -3, 100101)
+        r.sp4 = SpecialProp2()
+        self.assertEqual('"a-17-None"\t\t100115\t', row(r))
+        self.assertEqual(OrderedDict([
+             ('sp1', 'a-17-None'),
+             ('sp2', None),
+             ('sp3', 100115),
+             ('sp4', None)]), as_dict(r))
 
 
 if __name__ == '__main__':

@@ -84,17 +84,6 @@ class DynPropsMeta(type):
         cls._clear()                # Propagate defaults to actual values
         super().__init__(cls_name, args, kwargs)
 
-    # def _dyn_annotations(cls, annotations: Dict) -> Dict:
-    #     proplist = OrderedDict()
-    #     proplist[parents_key] = None  # Parent properties got at the top by default
-    #     for k, v in annotations.items():
-    #         if isinstance(v, DynEntry):
-    #             proplist[k] = v
-    #         elif v is Parent:  # Explicitly declared parent
-    #             assert cls._dyn_parent, "No parent exists"
-    #             del proplist[""]
-    #             proplist[""] = None
-    #     return proplist
 
     def _xfer_annotations(cls, kwargs: Dict) -> None:
         """ Create the DynEntries list from the type (and possibly) values """
@@ -108,7 +97,6 @@ class DynPropsMeta(type):
                 assert cls._dyn_parent, "No parent exists"
                 del proplist[""]
                 proplist[""] = None
-        # proplist = cls._dyn_annotations(cls.__annotations__)
 
         # Merge with the parent DynEntries
         for k, v in proplist.items():
@@ -176,7 +164,8 @@ class DynProps(metaclass=DynPropsMeta):
         """
         rval = OrderedDict()
         for k in self._keys:
-            rval[k] = self.__getattr__(k)
+            v = self.__getattr__(k)
+            rval[k] = v.reify() if getattr(v, 'reify', None) else v
         return rval
 
     @classmethod

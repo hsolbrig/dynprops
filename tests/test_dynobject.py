@@ -60,6 +60,7 @@ class DynObjectTestCase(unittest.TestCase):
     def tearDown(self):
         I2B2Core._clear()
         I2B2CoreWithUploadId._clear()
+        DynProps._separator = '\t'
 
     def test_simple_dimension(self):
         x = I2B2SimpleDimension()
