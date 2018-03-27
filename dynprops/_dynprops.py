@@ -146,7 +146,8 @@ class DynPropsMeta(type):
         if item in self._props:
             att = super().__getattribute__('_' + item)
             att_parms = list(signature(att).parameters) if callable(att) else []
-            return att(self) if len(att_parms) == 1 and 'self' in att_parms else att() if callable(att) else att
+            return att(self) if len(att_parms) == 1 and 'self' in att_parms else att() \
+                if callable(att) else att.reify() if getattr(att, 'reify', None) else att
         return getattr(self._dyn_parent, item) if self._get_prop(item) else super().__getattribute__(item)
 
 
