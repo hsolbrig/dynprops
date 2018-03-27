@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, cast
 import time
 
-from dynprops import DynProps, Global, Parent, Local, row, as_dict
+from dynprops import DynProps, Global, Parent, Local, row, as_dict, heading, clear
 
 
 class I2B2Core(DynProps):
@@ -54,33 +54,33 @@ class DynPropsTestCase(unittest.TestCase):
 
     def test_headers(self):
         self.assertEqual('update_date\tdownload_date\timport_date\tsourcesystem_cd',
-                         I2B2Core._head())
+                         heading(I2B2Core))
         self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd',
-                         I2B2CoreUploadIdFirst._head())
+                         heading(I2B2CoreUploadIdFirst))
         self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd\t'
-                         'another_prop', I2B2CoreParentMiddle._head())
+                         'another_prop', heading(I2B2CoreParentMiddle))
         self.assertEqual('update_date\tdownload_date\timport_date\tsourcesystem_cd\tupload_id',
-                         I2B2CoreNoParent._head())
+                         heading(I2B2CoreNoParent))
         self.assertEqual('update_date\tdownload_date\timport_date\tupload_id\tsourcesystem_cd',
-                         I2B2CoreDupValue._head())
+                         heading(I2B2CoreDupValue))
         self.assertEqual('concept_cd\tmodifier_cd\tupdate_date\tdownload_date\timport_date\t'
-                         'sourcesystem_cd\tupload_id', I2B2SimpleDimension._head())
+                         'sourcesystem_cd\tupload_id', heading(I2B2SimpleDimension))
 
     def test_separator_and_head(self):
         x = I2B2Core()
-        self.assertEqual("update_date\tdownload_date\timport_date\tsourcesystem_cd", I2B2Core._head())
-        self.assertEqual(I2B2Core._head(), x._head())
+        self.assertEqual("update_date\tdownload_date\timport_date\tsourcesystem_cd", heading(I2B2Core))
+        self.assertEqual(heading(I2B2Core), heading(x))
         # Note: if you get a failure below
         I2B2Core._separator = 'A'
-        self.assertEqual("update_dateAdownload_dateAimport_dateAsourcesystem_cd", I2B2Core._head())
-        self.assertEqual(I2B2Core._head(), x._head())
+        self.assertEqual("update_dateAdownload_dateAimport_dateAsourcesystem_cd", heading(I2B2Core))
+        self.assertEqual(heading(I2B2Core), heading(x))
         I2B2CoreUploadIdFirst._separator = 'B'
-        self.assertEqual("update_dateAdownload_dateAimport_dateAsourcesystem_cd", I2B2Core._head())
-        self.assertEqual(I2B2Core._head(), x._head())
+        self.assertEqual("update_dateAdownload_dateAimport_dateAsourcesystem_cd", heading(I2B2Core))
+        self.assertEqual(heading(I2B2Core), heading(x))
         self.assertEqual("upload_idBupdate_dateBdownload_dateBimport_dateBsourcesystem_cd",
-                         I2B2CoreUploadIdFirst._head())
+                         heading(I2B2CoreUploadIdFirst))
         self.assertEqual("upload_idBupdate_dateBdownload_dateBimport_dateBsourcesystem_cd",
-                         I2B2CoreUploadIdFirst()._head())
+                         heading(I2B2CoreUploadIdFirst()))
 
     def test_esc(self):
         self.assertEqual("abc", I2B2Core._escape("abc"))
@@ -148,18 +148,18 @@ class DynPropsTestCase(unittest.TestCase):
         self.assertEqual(cwi_instance.upload_id, I2B2CoreUploadIdFirst.upload_id)
 
         # Clear covers base class but not inherited elements
-        I2B2Core._clear()
+        clear(I2B2Core)
         self.assertEqual("Unspecified", core_instance.sourcesystem_cd)
         self.assertEqual("Unspecified", cwi_instance.sourcesystem_cd)
         self.assertEqual(118, cwi_instance.upload_id)
 
         # Clear of subclass covers superclass as well
         I2B2Core.sourcesystem_cd = "test3"
-        I2B2Core._clear()
+        clear(I2B2Core)
         self.assertEqual("Unspecified", core_instance.sourcesystem_cd)
         self.assertEqual("Unspecified", cwi_instance.sourcesystem_cd)
         self.assertEqual(118, cwi_instance.upload_id)
-        I2B2CoreUploadIdFirst._clear()
+        clear(I2B2CoreUploadIdFirst)
         self.assertIsNone(cwi_instance.upload_id)
 
     def test_function_property(self):
@@ -173,9 +173,9 @@ class DynPropsTestCase(unittest.TestCase):
 
     def test_extension_placement(self):
         x = I2B2CoreParentMiddle()
-        self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd\tanother_prop', x._head())
+        self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd\tanother_prop', heading(x))
         self.assertEqual('update_date\tdownload_date\timport_date\tsourcesystem_cd\tupload_id',
-                         I2B2CoreNoParent._head())
+                         heading(I2B2CoreNoParent))
 
     def test_freeze(self):
         x = I2B2Core()
@@ -208,7 +208,7 @@ class DynPropsTestCase(unittest.TestCase):
             ('download_date', datetime(2017, 5, 30, 11, 33, 20)),
             ('import_date', datetime(2017, 5, 31, 0, 0)),
             ('sourcesystem_cd', 'SSCODE')]), y._freeze())
-        I2B2Core._clear()
+        clear(I2B2Core)
         self.assertEqual(OrderedDict([
              ('update_date', None),
              ('download_date', None),
@@ -220,34 +220,34 @@ class DynPropsTestCase(unittest.TestCase):
              ('download_date', None),
              ('import_date', None),
              ('sourcesystem_cd', ''"Unspecified"'')]), y._freeze())
-        I2B2CoreUploadIdFirst._clear()
+        clear(I2B2CoreUploadIdFirst)
 
     def test_repr(self):
-        I2B2CoreUploadIdFirst._clear()
+        clear(I2B2CoreUploadIdFirst)
         x = I2B2Core()
         y = I2B2CoreUploadIdFirst()
         I2B2Core.sourcesystem_cd = "SSCODE"
         I2B2Core.import_date = datetime(2017, 5, 31)
         I2B2Core.download_date = datetime(2017, 5, 30, 11, 33, 20)
         I2B2Core.update_date = datetime(2017, 5, 29, 8, 33, 20)
-        self.assertEqual('2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\t"SSCODE"', x._delimited())
-        self.assertEqual('\t2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\t"SSCODE"', y._delimited())
+        self.assertEqual('2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\tSSCODE', row(x))
+        self.assertEqual('\t2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\tSSCODE', row(y))
         I2B2CoreUploadIdFirst.upload_id = 12345
-        self.assertEqual('2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\t"SSCODE"', x._delimited())
-        self.assertEqual('12345\t2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\t"SSCODE"',
-                         y._delimited())
+        self.assertEqual('2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\tSSCODE', row(x))
+        self.assertEqual('12345\t2017-05-29 08:33:20\t2017-05-30 11:33:20\t2017-05-31 00:00:00\tSSCODE',
+                         row(y))
         I2B2Core._separator = ','
-        self.assertEqual('2017-05-29 08:33:20,2017-05-30 11:33:20,2017-05-31 00:00:00,"SSCODE"', x._delimited())
-        self.assertEqual('12345,2017-05-29 08:33:20,2017-05-30 11:33:20,2017-05-31 00:00:00,"SSCODE"',
-                         y._delimited())
-        I2B2Core._clear()
-        self.assertEqual(',,,"Unspecified"', x._delimited())
-        self.assertEqual('12345,,,,"Unspecified"', y._delimited())
-        I2B2CoreUploadIdFirst._clear()
+        self.assertEqual('2017-05-29 08:33:20,2017-05-30 11:33:20,2017-05-31 00:00:00,SSCODE', row(x))
+        self.assertEqual('12345,2017-05-29 08:33:20,2017-05-30 11:33:20,2017-05-31 00:00:00,SSCODE',
+                         row(y))
+        clear(I2B2Core)
+        self.assertEqual(',,,Unspecified', row(x))
+        self.assertEqual('12345,,,,Unspecified', row(y))
+        clear(I2B2CoreUploadIdFirst)
         I2B2Core._separator = '\t'
 
     def test_str(self):
-        I2B2CoreUploadIdFirst._clear()
+        clear(I2B2CoreUploadIdFirst)
         x = I2B2Core()
         y = I2B2CoreUploadIdFirst()
         I2B2Core.sourcesystem_cd = "SSCODE"
@@ -305,7 +305,7 @@ class DynPropsTestCase(unittest.TestCase):
         self.assertEqual(x['update_date'], x['download_date'])
 
     def test_what_we_want(self):
-        I2B2Core._clear()
+        clear(I2B2Core)
         I2B2Core.download_date = lambda: I2B2Core.update_date
         I2B2Core.import_date = lambda: I2B2Core.update_date
 
@@ -323,7 +323,7 @@ class DynPropsTestCase(unittest.TestCase):
              ('sourcesystem_cd', 'Biggie')]), I2B2Core()._freeze())
 
         # Clear doesn't affect class functions
-        I2B2Core._clear()
+        clear(I2B2Core)
         self.assertEqual(OrderedDict([
              ('update_date', None),
              ('download_date', None),
@@ -342,7 +342,7 @@ class DynPropsTestCase(unittest.TestCase):
             sourcesystem_cd: Global[Optional[str]]
             x: Global[str]
 
-        self.assertEqual("\t", C1()._delimited())
+        self.assertEqual("\t", row(C1()))
 
         with self.assertRaises(AttributeError):
             class Extension0(C1):
@@ -356,9 +356,9 @@ class DynPropsTestCase(unittest.TestCase):
         _ = Extension()                         # Prevent lint check
         C1.sourcesystem_cd = "SS3"
 
-        self.assertEqual('"SS3"\t', C1()._delimited())
-        C1._clear()
-        self.assertEqual("\t", C1()._delimited())
+        self.assertEqual("SS3\t", row(C1()))
+        clear(C1)
+        self.assertEqual("\t", row(C1()))
 
     def test_reify(self):
         class SpecialProp1:
@@ -386,7 +386,7 @@ class DynPropsTestCase(unittest.TestCase):
         r.sp2 = SpecialProp1()
         r.sp3 = SpecialProp2(17, -3, 100101)
         r.sp4 = SpecialProp2()
-        self.assertEqual('"a-17-None"\t\t100115\t', row(r))
+        self.assertEqual("a-17-None\t\t100115\t", row(r))
         self.assertEqual(OrderedDict([
              ('sp1', 'a-17-None'),
              ('sp2', None),

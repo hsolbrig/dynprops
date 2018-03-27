@@ -1,3 +1,5 @@
+import csv
+import io
 from collections import OrderedDict
 from inspect import signature
 from typing import Dict, Any, Optional, Union, Callable, Tuple, List
@@ -84,6 +86,16 @@ class DynPropsMeta(type):
         cls._clear()                # Propagate defaults to actual values
         super().__init__(cls_name, args, kwargs)
 
+    @property
+    def _separator(cls) -> Optional[str]:
+        return None
+
+    @_separator.setter
+    def _separator(cls, sep):
+        csv.unregister_dialect("DynProps")
+        # noinspection PyTypeChecker
+        csv.register_dialect("DynProps", csv.excel_tab, delimiter=sep, lineterminator="")
+        cls._csv_writer = csv.writer(cls._io_stream, dialect="DynProps")
 
     def _xfer_annotations(cls, kwargs: Dict) -> None:
         """ Create the DynEntries list from the type (and possibly) values """
@@ -145,17 +157,22 @@ class DynProps(metaclass=DynPropsMeta):
     _sql_string_delimiter_escape: str = r'\"'    # Change to double quote for Oracle
     _sql_null_text: str = ""                     # Null value representation
 
-    _separator: str = '\t'
+    _io_stream = io.StringIO()
+    # noinspection PyTypeChecker
+    csv.register_dialect('DynProps', csv.excel_tab, lineterminator="")
+    _csv_writer = csv.writer(_io_stream, dialect="DynProps")
 
     _props: DynEntries = OrderedDict()          # Names of represented elements
     _keys: List[str] = []
     _dyn_parent: Optional["DynProps"] = None    # Parent
 
-
     @classmethod
     def _head(cls) -> str:
         """ Return a tsv/csv header """
-        return cls._separator.join(cls._keys)
+        cls._io_stream.seek(0)
+        cls._io_stream.truncate(0)
+        cls._csv_writer.writerow(cls._keys)
+        return cls._io_stream.getvalue()
 
     def _freeze(self) -> Dict[str, object]:
         """ Return an ordered dictionary of key/value tuples
@@ -191,10 +208,10 @@ class DynProps(metaclass=DynPropsMeta):
 
     def _delimited(self) -> str:
         """ Return a delimited representation of the object """
-        return self._separator.join(
-            f"{self._sql_string_delimiter}{self._escape(e)}{self._sql_string_delimiter}" if isinstance(e, str) else
-                                    str(e) if e is not None else
-                                    self._sql_null_text for e in self._freeze().values())
+        self._io_stream.seek(0)
+        self._io_stream.truncate(0)
+        self._csv_writer.writerow(self._freeze().values())
+        return self._io_stream.getvalue()
 
     def __lt__(self, other: "DynProps") -> bool:
         if not isinstance(other, DynProps):
@@ -233,20 +250,16 @@ class DynProps(metaclass=DynPropsMeta):
         super().__setattr__(key, value)
 
 
-def tsv_separator(sep: Optional[str] = None) -> str:
-    """ Get or set the tsv separator and return the current one """
-    rval = DynProps._separator
-    if sep is not None:
-        DynProps._separator = sep
-    return rval
-
-
 def sql_string_delimiter_esc(esc: Optional[str] = None) -> str:
     """ Get or set the SQL string delimiter escape code """
     rval = DynProps._sql_string_delimiter_escape
     if esc is not None:
         DynProps._sql_string_delimiter_escape = esc
     return rval
+
+
+def clear(cls: type(DynProps)) -> None:
+    cls._clear()
 
 
 def heading(cls: type(DynProps)) -> str:

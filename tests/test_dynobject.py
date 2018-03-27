@@ -115,8 +115,8 @@ class DynObjectTestCase(unittest.TestCase):
             a_local_prop_2: Local[str] = "loc2"
         DynProps._separator = "-"
 
-        self.assertEqual('"glob1"-"loc1"', row(I1()))
-        self.assertEqual('"glob1"-"loc2"', row(I2()))
+        self.assertEqual('glob1-loc1', row(I1()))
+        self.assertEqual('glob1-loc2', row(I2()))
         DynProps._separator = '\t'
 
     def test_simple_props(self):
@@ -132,6 +132,22 @@ class DynObjectTestCase(unittest.TestCase):
 
         x = Base("telly")
         self.assertEqual("There is a penguin on the telly", x.try_me())
+
+    def test_method(self):
+        class Base(DynProps):
+            p1: Local[str]
+            p2: Local[str]
+
+        class C(Base):
+            def p1(self) -> str:
+                return "pie"
+
+            def p2(self) -> str:
+                return "pizza " + self.p1()
+
+        x = C()
+        from pprint import PrettyPrinter; pp = PrettyPrinter().pprint
+        pp(row(x))
 
 
 if __name__ == '__main__':
