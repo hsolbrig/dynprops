@@ -173,7 +173,8 @@ class DynPropsTestCase(unittest.TestCase):
 
     def test_extension_placement(self):
         x = I2B2CoreParentMiddle()
-        self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd\tanother_prop', heading(x))
+        self.assertEqual('upload_id\tupdate_date\tdownload_date\timport_date\tsourcesystem_cd\tanother_prop',
+                         heading(x))
         self.assertEqual('update_date\tdownload_date\timport_date\tsourcesystem_cd\tupload_id',
                          heading(I2B2CoreNoParent))
 
@@ -362,7 +363,7 @@ class DynPropsTestCase(unittest.TestCase):
 
     def test_reify(self):
         class SpecialProp1:
-            def __init__(self, *parts) -> None:
+            def __init__(self, parts) -> None:
                 self.parts = parts
 
             def reify(self):
@@ -382,8 +383,8 @@ class DynPropsTestCase(unittest.TestCase):
             sp4: Local[SpecialProp2]
 
         r = R1()
-        r.sp1 = SpecialProp1('a', 17, None)
-        r.sp2 = SpecialProp1()
+        r.sp1 = SpecialProp1(['a', 17, None])
+        r.sp2 = SpecialProp1([])
         r.sp3 = SpecialProp2(17, -3, 100101)
         r.sp4 = SpecialProp2()
         self.assertEqual("a-17-None\t\t100115\t", row(r))
@@ -392,6 +393,11 @@ class DynPropsTestCase(unittest.TestCase):
              ('sp2', None),
              ('sp3', 100115),
              ('sp4', None)]), as_dict(r))
+
+        r.sp1_.parts.append("Alpha")
+        self.assertEqual('a-17-None-Alpha', r.sp1)
+        self.assertTrue(isinstance(r.sp1_, SpecialProp1))
+        self.assertTrue(isinstance(r.sp1, str))
 
 
 if __name__ == '__main__':

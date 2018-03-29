@@ -42,7 +42,7 @@ class I2B2SimpleDimension(I2B2SimpleDimensionProps):
 class I2B2SimpleDimension2(I2B2SimpleDimensionProps):
 
     def __init__(self, cc: str, mc: Optional[str]=None):
-        self._concept_cd = cc
+        self.concept_cd = cc
         self.mc = mc
 
     def concept_cd(self):
@@ -143,11 +143,12 @@ class DynObjectTestCase(unittest.TestCase):
                 return "pie"
 
             def p2(self) -> str:
-                return "pizza " + self.p1()
+                # Note that lint checker will complain about the below, but it will work
+                # noinspection PyTypeChecker
+                return "pizza " + self.p1
 
         x = C()
-        from pprint import PrettyPrinter; pp = PrettyPrinter().pprint
-        pp(row(x))
+        self.assertEqual('pie\tpizza pie', row(x))
 
 
 if __name__ == '__main__':
